@@ -2,6 +2,8 @@ export class Queue {
   queue = [];
 
   pendingPromise = false;
+  pause: boolean;
+  workingOnPromise: boolean;
 
   constructor() {
     window.addEventListener('focus', () => {
@@ -18,10 +20,10 @@ export class Queue {
     });
   }
 
-  enqueue(promise) {
+  enqueue(asynchronousCallback: () => Promise<any>): Promise<any> {
     return new Promise((resolve, reject) => {
       this.queue.push({
-        promise,
+        promise: asynchronousCallback,
         resolve,
         reject,
       });
@@ -33,28 +35,27 @@ export class Queue {
     if (this.workingOnPromise || this.pause) {
       return false;
     }
-    const item = this.queue.shift();
-    if (!item) {
+    const firstElement = this.queue.shift();
+    if (!firstElement) {
       return false;
     }
     try {
       this.workingOnPromise = true;
-      item
+      firstElement
         .promise()
-        .then((value) => {
+        .then((value: any) => {
           this.workingOnPromise = false;
-          console.log('value', value);
-          item.resolve(value);
+          firstElement.resolve(value);
           this.dequeue();
         })
-        .catch((err) => {
+        .catch((err: any) => {
           this.workingOnPromise = false;
-          item.reject(err);
+          firstElement.reject(err);
           this.dequeue();
         });
     } catch (err) {
       this.workingOnPromise = false;
-      item.reject(err);
+      firstElement.reject(err);
       this.dequeue();
     }
     return true;
