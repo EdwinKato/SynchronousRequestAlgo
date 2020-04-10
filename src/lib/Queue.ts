@@ -7,7 +7,6 @@ interface QueueElement {
 export class Queue {
   queue: QueueElement[] = [];
 
-  pendingPromise = false;
   pause: boolean = false;
   workingOnPromise: boolean = false;
 
