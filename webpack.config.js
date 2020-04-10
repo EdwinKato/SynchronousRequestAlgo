@@ -10,7 +10,7 @@ module.exports = {
   mode: process.env.NODE_ENV ? process.env.NODE_ENV : 'development',
 
   // entry file(s)
-  entry: './src/index.js',
+  entry: './src/index.ts',
 
   // output file(s) and chunks
   output: {
@@ -24,16 +24,18 @@ module.exports = {
     publicPath: config.get('publicPath'),
   },
 
+  resolve: {
+    // Add '.ts' as resolvable extensions.
+    extensions: [".webpack.js", ".web.js", ".ts", ".js"]
+  },
+
   // module/loaders configuration
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
-        options: {
-          presets: [{ plugins: ['@babel/plugin-proposal-class-properties'] }],
-        },
+        loader: 'ts-loader',
       },
       {
         test: /\.scss$/,

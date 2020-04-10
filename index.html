@@ -7,6 +7,15 @@
     </head>
     <body>
         <div id="app"></div>
-        <button onclick="makeRequest()" class='request-button'>Click me</button>
+        <div class="container">
+            <div class="title">Synchronous request challenge</div>
+            <div class="description">
+                Open your console and click the button below.<br /><br />
+                Check to see that no more than 60 calls are made to the backend.<br /><br />
+                Clicking the button at the same second it was clicked the previous minute
+                should return a warning and cached response.
+            </div>
+            <button onclick="makeRequest()" class='request-button'>Click me</button>
+        </div>
     </body>
 </html>

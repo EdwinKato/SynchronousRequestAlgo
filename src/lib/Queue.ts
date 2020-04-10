@@ -1,7 +1,14 @@
-export class Queue {
-  queue = [];
+interface QueueElement {
+  promise: () => Promise<any>,
+  resolve: Function,
+  reject: Function,
+}
 
-  pendingPromise = false;
+export class Queue {
+  queue: QueueElement[] = [];
+
+  pause: boolean = false;
+  workingOnPromise: boolean = false;
 
   constructor() {
     window.addEventListener('focus', () => {
@@ -18,10 +25,10 @@ export class Queue {
     });
   }
 
-  enqueue(promise) {
+  enqueue(asynchronousCallback: () => Promise<any>): Promise<any> {
     return new Promise((resolve, reject) => {
       this.queue.push({
-        promise,
+        promise: asynchronousCallback,
         resolve,
         reject,
       });
@@ -29,34 +36,26 @@ export class Queue {
     });
   }
 
-  dequeue() {
+  async dequeue() {
     if (this.workingOnPromise || this.pause) {
       return false;
     }
-    const item = this.queue.shift();
-    if (!item) {
+    const firstElement = this.queue.shift();
+    if (!firstElement) {
       return false;
     }
     try {
       this.workingOnPromise = true;
-      item
-        .promise()
-        .then((value) => {
-          this.workingOnPromise = false;
-          console.log('value', value);
-          item.resolve(value);
-          this.dequeue();
-        })
-        .catch((err) => {
-          this.workingOnPromise = false;
-          item.reject(err);
-          this.dequeue();
-        });
+      const value = await firstElement.promise()
+      this.workingOnPromise = false;
+      firstElement.resolve(value);
+      this.dequeue();
     } catch (err) {
       this.workingOnPromise = false;
-      item.reject(err);
+      firstElement.reject(err);
       this.dequeue();
+    } finally {
+      return true;
     }
-    return true;
   }
 }
