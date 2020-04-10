@@ -54,7 +54,6 @@ export const makeRequest = async () => {
 
   const { id, seconds, cached } = result;
   if (!cached) {
-    console.log('id', id);
-    console.log('seconds', seconds);
+    console.log(`id: ${id} and seconds: ${seconds}`);
   }
 };
