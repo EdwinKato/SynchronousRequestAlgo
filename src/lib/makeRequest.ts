@@ -5,16 +5,18 @@ interface result {
   seconds: string
 }
 
-function cachedRequest(): (seconds: string) => Promise<result> {
-  const secondsCache = {};
+export function cachedRequest(log = console.log): (seconds: string) => Promise<result> {
+  const secondsCache: { [key: string]: result } = {};
   const myHeaders = new Headers();
   myHeaders.append('Content-Type', 'application/json');
+
   return function (seconds: string): Promise<result> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const cachedValue = secondsCache[seconds];
+
       if (cachedValue) {
-        console.log(
-          `Warning: A request at ${seconds} seconds has already been made.`,
+        log(
+          `Warning: A request at ${seconds} seconds has already been made. Returning cached results`
         );
         resolve(cachedValue);
       } else {
@@ -24,15 +26,17 @@ function cachedRequest(): (seconds: string) => Promise<result> {
           body: JSON.stringify({ seconds }),
           redirect: 'follow',
         };
-        fetch('https://jsonplaceholder.typicode.com/posts', requestOptions)
-          .then((response) => response.json())
-          .then((jsonResponse) => {
-            secondsCache[seconds] = jsonResponse;
-            return resolve(jsonResponse);
-          })
-          .catch((error) => {
-            return reject(error);
-          });
+
+        try {
+          log(`Making fresh api call`);
+          const response = await fetch('https://jsonplaceholder.typicode.com/posts', requestOptions)
+          const jsonResponse = await response.json()
+          secondsCache[seconds] = jsonResponse;
+          return resolve(jsonResponse);
+        } catch (error) {
+          return reject(error);
+        }
+
       }
     });
   };
@@ -51,4 +55,3 @@ export const makeRequest = async () => {
   console.log('id', id);
   console.log('seconds', seconds);
 };
-

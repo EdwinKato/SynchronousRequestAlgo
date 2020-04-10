@@ -1,9 +1,15 @@
+interface QueueElement {
+  promise: () => Promise<any>,
+  resolve: Function,
+  reject: Function,
+}
+
 export class Queue {
-  queue = [];
+  queue: QueueElement[] = [];
 
   pendingPromise = false;
-  pause: boolean;
-  workingOnPromise: boolean;
+  pause: boolean = false;
+  workingOnPromise: boolean = false;
 
   constructor() {
     window.addEventListener('focus', () => {
@@ -31,7 +37,7 @@ export class Queue {
     });
   }
 
-  dequeue() {
+  async dequeue() {
     if (this.workingOnPromise || this.pause) {
       return false;
     }
@@ -41,23 +47,16 @@ export class Queue {
     }
     try {
       this.workingOnPromise = true;
-      firstElement
-        .promise()
-        .then((value: any) => {
-          this.workingOnPromise = false;
-          firstElement.resolve(value);
-          this.dequeue();
-        })
-        .catch((err: any) => {
-          this.workingOnPromise = false;
-          firstElement.reject(err);
-          this.dequeue();
-        });
+      const value = await firstElement.promise()
+      this.workingOnPromise = false;
+      firstElement.resolve(value);
+      this.dequeue();
     } catch (err) {
       this.workingOnPromise = false;
       firstElement.reject(err);
       this.dequeue();
+    } finally {
+      return true;
     }
-    return true;
   }
 }
