@@ -38,7 +38,7 @@ describe('makeRequest', () => {
     expect(window.fetch).toHaveBeenCalledTimes(1);
 
     await request('52');
-    expect(logger).toHaveBeenNthCalledWith(2, "Warning: A request at 52 seconds has already been made. Returning cached results")
+    expect(logger).toHaveBeenNthCalledWith(2, "Warning: A request at 52 seconds has already been made.")
     expect(window.fetch).toHaveBeenCalledTimes(1);
   });
 

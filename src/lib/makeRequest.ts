@@ -2,7 +2,8 @@ import { Queue } from './Queue';
 
 interface result { 
   id: string,
-  seconds: string
+  seconds: string,
+  cached?: boolean
 }
 
 export function cachedRequest(log = console.log): (seconds: string) => Promise<result> {
@@ -16,7 +17,7 @@ export function cachedRequest(log = console.log): (seconds: string) => Promise<r
 
       if (cachedValue) {
         log(
-          `Warning: A request at ${seconds} seconds has already been made. Returning cached results`
+          `Warning: A request at ${seconds} seconds has already been made.`
         );
         resolve(cachedValue);
       } else {
@@ -31,7 +32,7 @@ export function cachedRequest(log = console.log): (seconds: string) => Promise<r
           log(`Making fresh api call`);
           const response = await fetch('https://jsonplaceholder.typicode.com/posts', requestOptions)
           const jsonResponse = await response.json()
-          secondsCache[seconds] = jsonResponse;
+          secondsCache[seconds] = { ...jsonResponse, cached: true };
           return resolve(jsonResponse);
         } catch (error) {
           return reject(error);
@@ -47,11 +48,13 @@ const queue = new Queue();
 
 export const makeRequest = async () => {
   const currentSeconds = new Date().getSeconds().toString();
-  console.log('clicked at: ', currentSeconds);
+  console.log('Clicked button at: ', currentSeconds);
   const asynchronousCallback = () => request(currentSeconds)
   const result = await queue.enqueue(asynchronousCallback);
 
-  const { id, seconds } = result;
-  console.log('id', id);
-  console.log('seconds', seconds);
+  const { id, seconds, cached } = result;
+  if (!cached) {
+    console.log('id', id);
+    console.log('seconds', seconds);
+  }
 };
